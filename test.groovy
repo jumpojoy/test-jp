@@ -6,7 +6,9 @@ timestamps {
   node("master"){
     ssh.prepareSshAgentKey(CREDENTIALS_ID)
     ssh.ensureKnownHosts(GERRIT_HOST)
-    ssh.agentSh(String.format("ssh %s@%s id", GERRIT_NAME, GERRIT_HOST))
+    res = ssh.agentSh(String.format("ssh  %s@%s echo %s", GERRIT_NAME, GERRIT_HOST, SALT_FORMULAS_IRONIC_BRANCH))
+    common.infoMsg(res)
     sh("id")
   }
 }
+
