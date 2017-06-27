@@ -6,9 +6,18 @@ timestamps {
   node("master"){
     ssh.prepareSshAgentKey(CREDENTIALS_ID)
     ssh.ensureKnownHosts(GERRIT_HOST)
-    res = ssh.agentSh(String.format("ssh  %s@%s echo %s", GERRIT_NAME, GERRIT_HOST, SALT_FORMULAS_IRONIC_BRANCH))
-    common.infoMsg(res)
+    stage("checkout") {
+      wrap([$class: 'AnsiColorBuildWrapper']) {
+        ssh.agentSh(String.format("ssh %s@%s 'git clone https://github.com/jumpojoy/mcp-underlay-aio /root/mcp-underlay-aio'", GERRIT_NAME, GERRIT_HOST))
+        common.successMsg("Successfully clone https://github.com/jumpojoy/mcp-underlay-aio")
+      }
+    }
+    stage("install_salt") {
+        wrap([$class: 'AnsiColorBuildWrapper']) {
+        ssh.agentSh(String.format("ssh %s@%s 'bash /root/mcp-underlay-aio/scripts/aio-setup.sh'", GERRIT_NAME, GERRIT_HOST))
+        common.successMsg("Salt has been installed successfully.")
+      }
+    }
     sh("id")
   }
 }
-
