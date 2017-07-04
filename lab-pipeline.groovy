@@ -104,7 +104,7 @@ timestamps {
                     currentBuild.description = "${STACK_NAME}"
 
                     // get templates
-                    git.checkoutGitRepository('template', STACK_TEMPLATE_URL, STACK_TEMPLATE_BRANCH, STACK_TEMPLATE_CREDENTIALS)
+                    //git.checkoutGitRepository('template', STACK_TEMPLATE_URL, STACK_TEMPLATE_BRANCH, STACK_TEMPLATE_CREDENTIALS)
 
                     // create openstack env
                     openstack.setupOpenstackVirtualenv(openstackEnv, openstackVersion)
