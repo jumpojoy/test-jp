@@ -136,9 +136,10 @@ timestamps {
                             ]
                             try {
                                 envParams.put('cfg_reclass_branch', HEAT_STACK_RECLASS_BRANCH)
-                                envParams.put('reclass_address', HEAT_STACK_RECLASS_ADDRESS)
                             } catch (MissingPropertyException e) {}
-                            reclass_address
+                            try {
+                                envParams.put('cfg_reclass_address', HEAT_STACK_RECLASS_ADDRESS)
+                            } catch (MissingPropertyException e) {}
                             openstack.createHeatStack(openstackCloud, STACK_NAME, STACK_TEMPLATE, envParams, HEAT_STACK_ENVIRONMENT, openstackEnv)
                         }
                     }
