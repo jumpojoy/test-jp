@@ -138,7 +138,7 @@ timestamps {
                             // create stack
                             envParams = [
                                 'instance_zone': HEAT_STACK_ZONE,
-                                'public_net': HEAT_STACK_PUBLIC_NET
+                                'public_net': HEAT_STACK_PUBLIC_NET,
                                 'cfg_reclass_branch': HEAT_STACK_RECLASS_BRANCH
                             ]
                             openstack.createHeatStack(openstackCloud, STACK_NAME, STACK_TEMPLATE, envParams, HEAT_STACK_ENVIRONMENT, openstackEnv)
