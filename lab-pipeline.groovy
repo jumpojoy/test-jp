@@ -155,7 +155,7 @@ timestamps {
             //
             // Connect to Salt master
             //
-/*
+
             def saltMaster
             stage('Connect to Salt API') {
                 saltMaster = salt.connection(SALT_MASTER_URL, SALT_MASTER_CREDENTIALS)
@@ -371,7 +371,7 @@ timestamps {
                     }
                 }
             }
-*/
+
         } catch (Throwable e) {
             currentBuild.result = 'FAILURE'
             throw e
