@@ -62,6 +62,14 @@ _MAX_PERMITTED_STACKS = 2
 def installOpenstackControl(master) {
     def salt = new com.mirantis.mk.Salt()
 
+    try {
+        OPENSTACK_SERVICES = OPENSTACK_SERVICES
+        env['OPENSTACK_SERVICES'] = OPENSTACK_SERVICES
+    } catch (MissingPropertyException e) {
+        OPENSTACK_SERVICES='horizon'
+    }
+
+
     if (common.checkContains('OPENSTACK_SERVICES', 'horizon')){
     // Install horizon dashboard
         salt.enforceState(master, 'I@horizon:server', 'horizon', true)
@@ -105,8 +113,8 @@ def installOpenstackControl(master) {
     salt.enforceState(master, 'I@cinder:controller and *01*', 'cinder', true)
     salt.enforceState(master, 'I@cinder:controller', 'cinder', true)
     salt.runSaltProcessStep(master, 'I@keystone:server', 'cmd.run', ['. /root/keystonerc; cinder list'], null, true)
-    / Install heat service
-    //runSaltProcessStep(master, 'I@heat:server', 'state.sls', ['heat'], 1)
+    // Install heat service
+    salt.runSaltProcessStep(master, 'I@heat:server', 'state.sls', ['heat'], 1)
     salt.enforceState(master, 'I@heat:server and *01*', 'heat', true)
     salt.enforceState(master, 'I@heat:server', 'heat', true)
     salt.runSaltProcessStep(master, 'I@keystone:server', 'cmd.run', ['. /root/keystonerc; heat resource-type-list'], null, true)
