@@ -59,6 +59,15 @@ test = new com.mirantis.mk.Test()
 
 _MAX_PERMITTED_STACKS = 2
 
+def installOpenstackIronic(master){
+    def salt = new com.mirantis.mk.Salt()
+
+    salt.enforceState(master, 'I@ironic:api and *01*', 'ironic:api', true)
+    salt.enforceState(master, 'I@ironic:api', 'ironic:api', true)
+    salt.enforceState(master, 'I@ironic:conductor', 'ironic:conductor', true)
+    salt.enforceState(master, 'I@ironic:client', 'ironic:client', true)
+}
+
 def installOpenstackControl(master) {
     def salt = new com.mirantis.mk.Salt()
 
@@ -121,6 +130,7 @@ def installOpenstackControl(master) {
 
     // Restart nova api
     salt.runSaltProcessStep(master, 'I@nova:controller', 'service.restart', ['nova-api'])
+
 }
 
 timestamps {
@@ -352,6 +362,11 @@ timestamps {
 
                     if (common.checkContains('STACK_INSTALL', 'contrail')) {
                         orchestrate.installContrailCompute(saltMaster)
+                    }
+                }
+                if (common.checkContains('OPENSTACK_SERVICES', 'ironic')) {
+                    stage('Install OpenStack Ironic') {
+                        installOpenstackIronic(saltMaster)
                     }
                 }
 
