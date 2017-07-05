@@ -62,7 +62,7 @@ _MAX_PERMITTED_STACKS = 2
 def installOpenstackIronic(master){
     def salt = new com.mirantis.mk.Salt()
 
-    salt.enforceState(master, 'I@ironic:api and *01*', 'ironic.api', true)
+    salt.enforceState(master, 'I@ironic:api and ctl01*', 'ironic.api', true)
     salt.enforceState(master, 'I@ironic:api', 'ironi.:api', true)
     salt.enforceState(master, 'I@ironic:conductor', 'ironic.conductor', true)
     salt.enforceState(master, 'I@ironic:client', 'ironic.client', true)
