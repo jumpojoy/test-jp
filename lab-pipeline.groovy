@@ -73,6 +73,12 @@ timestamps {
           }
         }
         try {
+          def temporary = HEAT_STACK_RECLASS_BRANCH
+        } catch (MissingPropertyException e) {
+          HEAT_STACK_RECLASS_BRANCH = 'master'
+          env['HEAT_STACK_RECLASS_BRANCH'] = HEAT_STACK_RECLASS_BRANCH
+        }
+        try {
             //
             // Prepare machines
             //
@@ -133,6 +139,7 @@ timestamps {
                             envParams = [
                                 'instance_zone': HEAT_STACK_ZONE,
                                 'public_net': HEAT_STACK_PUBLIC_NET
+                                'cfg_reclass_branch': HEAT_STACK_RECLASS_BRANCH
                             ]
                             openstack.createHeatStack(openstackCloud, STACK_NAME, STACK_TEMPLATE, envParams, HEAT_STACK_ENVIRONMENT, openstackEnv)
                         }
