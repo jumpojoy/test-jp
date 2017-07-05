@@ -65,6 +65,10 @@ def installOpenstackIronic(master){
     salt.enforceState(master, 'I@ironic:api and ctl01*', 'ironic.api', true)
     salt.enforceState(master, 'I@ironic:api', 'ironi.api', true)
     salt.enforceState(master, 'I@ironic:conductor', 'ironic.conductor', true)
+    salt.enforceState(master, 'I@ironic:conductor', 'apache', true)
+    salt.runSaltProcessStep(master, 'I@nova:compute', 'service.restart', ['nova-compute'])
+
+    salt.enforceState(master, 'I@tftpd_hpa:server', 'tftpd_hpa', true)
     salt.enforceState(master, 'I@ironic:client', 'ironic.client', true)
 }
 
