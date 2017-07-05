@@ -59,6 +59,62 @@ test = new com.mirantis.mk.Test()
 
 _MAX_PERMITTED_STACKS = 2
 
+def installOpenstackControl(master) {
+    def salt = new com.mirantis.mk.Salt()
+
+    if (common.checkContains('OPENSTACK_SERVICES', 'horizon')){
+    // Install horizon dashboard
+        salt.enforceState(master, 'I@horizon:server', 'horizon', true)
+        salt.enforceState(master, 'I@nginx:server', 'nginx', true)
+    }
+
+    // setup keystone service
+    //runSaltProcessStep(master, 'I@keystone:server', 'state.sls', ['keystone.server'], 1)
+    salt.enforceState(master, 'I@keystone:server and *01*', 'keystone.server', true)
+    salt.enforceState(master, 'I@keystone:server', 'keystone.server', true)
+    // populate keystone services/tenants/roles/users
+
+    // keystone:client must be called locally
+    //salt.runSaltProcessStep(master, 'I@keystone:client', 'cmd.run', ['salt-call state.sls keystone.client'], null, true)
+    salt.runSaltProcessStep(master, 'I@keystone:server', 'service.restart', ['apache2'])
+    sleep(30)
+    salt.enforceState(master, 'I@keystone:client', 'keystone.client', true)
+    salt.enforceState(master, 'I@keystone:client', 'keystone.client', true)
+    salt.runSaltProcessStep(master, 'I@keystone:server', 'cmd.run', ['. /root/keystonercv3; openstack service list'], null, true)
+
+    // Install glance and ensure glusterfs clusters
+    //runSaltProcessStep(master, 'I@glance:server', 'state.sls', ['glance.server'], 1)
+    salt.enforceState(master, 'I@glance:server and *01*', 'glance.server', true)
+    salt.enforceState(master, 'I@glance:server', 'glance.server', true)
+    salt.enforceState(master, 'I@glance:server', 'glusterfs.client', true)
+
+    // Update fernet tokens before doing request on keystone server
+    salt.enforceState(master, 'I@keystone:server', 'keystone.server', true)
+
+    // Check glance service
+    salt.runSaltProcessStep(master, 'I@keystone:server', 'cmd.run', ['. /root/keystonerc; glance image-list'], null, true)
+
+    // Install and check nova service
+    //runSaltProcessStep(master, 'I@nova:controller', 'state.sls', ['nova'], 1)
+    salt.enforceState(master, 'I@nova:controller and *01*', 'nova.controller', true)
+    salt.enforceState(master, 'I@nova:controller', 'nova.controller', true)
+    salt.runSaltProcessStep(master, 'I@keystone:server', 'cmd.run', ['. /root/keystonerc; nova service-list'], null, true)
+
+    // Install and check cinder service
+    //runSaltProcessStep(master, 'I@cinder:controller', 'state.sls', ['cinder'], 1)
+    salt.enforceState(master, 'I@cinder:controller and *01*', 'cinder', true)
+    salt.enforceState(master, 'I@cinder:controller', 'cinder', true)
+    salt.runSaltProcessStep(master, 'I@keystone:server', 'cmd.run', ['. /root/keystonerc; cinder list'], null, true)
+    / Install heat service
+    //runSaltProcessStep(master, 'I@heat:server', 'state.sls', ['heat'], 1)
+    salt.enforceState(master, 'I@heat:server and *01*', 'heat', true)
+    salt.enforceState(master, 'I@heat:server', 'heat', true)
+    salt.runSaltProcessStep(master, 'I@keystone:server', 'cmd.run', ['. /root/keystonerc; heat resource-type-list'], null, true)
+
+    // Restart nova api
+    salt.runSaltProcessStep(master, 'I@nova:controller', 'service.restart', ['nova-api'])
+}
+
 timestamps {
     node {
         // try to get STACK_INSTALL or fallback to INSTALL if exists
@@ -268,7 +324,7 @@ timestamps {
                 }
 
                 stage('Install OpenStack control') {
-                    orchestrate.installOpenstackControl(saltMaster)
+                    installOpenstackControl(saltMaster)
                 }
 
                 stage('Install OpenStack network') {
