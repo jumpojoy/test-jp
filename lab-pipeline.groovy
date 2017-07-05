@@ -114,10 +114,10 @@ def installOpenstackControl(master) {
     salt.enforceState(master, 'I@cinder:controller', 'cinder', true)
     salt.runSaltProcessStep(master, 'I@keystone:server', 'cmd.run', ['. /root/keystonerc; cinder list'], null, true)
     // Install heat service
-    salt.runSaltProcessStep(master, 'I@heat:server', 'state.sls', ['heat'], 1)
-    salt.enforceState(master, 'I@heat:server and *01*', 'heat', true)
-    salt.enforceState(master, 'I@heat:server', 'heat', true)
-    salt.runSaltProcessStep(master, 'I@keystone:server', 'cmd.run', ['. /root/keystonerc; heat resource-type-list'], null, true)
+    //salt.runSaltProcessStep(master, 'I@heat:server', 'state.sls', ['heat'], 1)
+    //salt.enforceState(master, 'I@heat:server and *01*', 'heat', true)
+    //salt.enforceState(master, 'I@heat:server', 'heat', true)
+    //salt.runSaltProcessStep(master, 'I@keystone:server', 'cmd.run', ['. /root/keystonerc; heat resource-type-list'], null, true)
 
     // Restart nova api
     salt.runSaltProcessStep(master, 'I@nova:controller', 'service.restart', ['nova-api'])
