@@ -98,17 +98,28 @@ def installOpenstackInfra(master, openstack_services='glusterfs,keepalived') {
     // Check the rabbitmq status
     salt.runSaltProcessStep(master, 'I@rabbitmq:server', 'cmd.run', ['rabbitmqctl cluster_status'])
 
-    // Install galera
-    withEnv(['ASK_ON_ERROR=false']){
-        retry(2) {
-            salt.enforceState(master, 'I@galera:master', 'galera', true)
+    if (common.checkContains('openstack_services', 'galera')){
+        // Install galera
+        withEnv(['ASK_ON_ERROR=false']){
+            retry(2) {
+                salt.enforceState(master, 'I@galera:master', 'galera', true)
+            }
+        }
+        salt.enforceState(master, 'I@galera:slave', 'galera', true)
+
+        // Check galera status
+        salt.runSaltProcessStep(master, 'I@galera:master', 'mysql.status')
+        salt.runSaltProcessStep(master, 'I@galera:slave', 'mysql.status')
+    }
+
+    if (common.checkContains('openstack_services', 'mysql')){
+        // Install mysql
+        withEnv(['ASK_ON_ERROR=false']){
+            retry(2) {
+                salt.enforceState(master, 'I@mysql:server', 'mysql', true)
+            }
         }
     }
-    salt.enforceState(master, 'I@galera:slave', 'galera', true)
-
-    // Check galera status
-    salt.runSaltProcessStep(master, 'I@galera:master', 'mysql.status')
-    salt.runSaltProcessStep(master, 'I@galera:slave', 'mysql.status')
 
     // // Setup mysql client
     // salt.enforceState(master, 'I@mysql:client', 'mysql.client', true)
