@@ -59,6 +59,67 @@ test = new com.mirantis.mk.Test()
 
 _MAX_PERMITTED_STACKS = 2
 
+def installOpenstackInfra(master, openstack_services='glusterfs') {
+    def salt = new com.mirantis.mk.Salt()
+
+    if (common.checkContains('openstack_services', 'glusterfs')){
+        // Install glusterfs
+        salt.enforceState(master, 'I@glusterfs:server', 'glusterfs.server.service', true)
+    }
+
+    // Install keepaliveds
+    //runSaltProcessStep(master, 'I@keepalived:cluster', 'state.sls', ['keepalived'], 1)
+    salt.enforceState(master, 'I@keepalived:cluster and *01*', 'keepalived', true)
+    salt.enforceState(master, 'I@keepalived:cluster', 'keepalived', true)
+
+    // Check the keepalived VIPs
+    salt.runSaltProcessStep(master, 'I@keepalived:cluster', 'cmd.run', ['ip a | grep 172.16.10.2'])
+
+    if (common.checkContains('openstack_services', 'glusterfs')){
+        withEnv(['ASK_ON_ERROR=false']){
+            retry(5) {
+                salt.enforceState(master, 'I@glusterfs:server and *01*', 'glusterfs.server.setup', true)
+            }
+        }
+
+        salt.runSaltProcessStep(master, 'I@glusterfs:server', 'cmd.run', ['gluster peer status'], null, true)
+        salt.runSaltProcessStep(master, 'I@glusterfs:server', 'cmd.run', ['gluster volume status'], null, true)
+
+    }
+    // Install rabbitmq
+    withEnv(['ASK_ON_ERROR=false']){
+        retry(2) {
+            salt.enforceState(master, 'I@rabbitmq:server', 'rabbitmq', true)
+        }
+    }
+
+    // Check the rabbitmq status
+    salt.runSaltProcessStep(master, 'I@rabbitmq:server', 'cmd.run', ['rabbitmqctl cluster_status'])
+
+    // Install galera
+    withEnv(['ASK_ON_ERROR=false']){
+        retry(2) {
+            salt.enforceState(master, 'I@galera:master', 'galera', true)
+        }
+    }
+    salt.enforceState(master, 'I@galera:slave', 'galera', true)
+
+    // Check galera status
+    salt.runSaltProcessStep(master, 'I@galera:master', 'mysql.status')
+    salt.runSaltProcessStep(master, 'I@galera:slave', 'mysql.status')
+
+    // // Setup mysql client
+    // salt.enforceState(master, 'I@mysql:client', 'mysql.client', true)
+
+    // Install haproxy
+    salt.enforceState(master, 'I@haproxy:proxy', 'haproxy', true)
+    salt.runSaltProcessStep(master, 'I@haproxy:proxy', 'service.status', ['haproxy'])
+    salt.runSaltProcessStep(master, 'I@haproxy:proxy', 'service.restart', ['rsyslog'])
+
+    // Install memcached
+    salt.enforceState(master, 'I@memcached:server', 'memcached', true)
+}
+
 def installOpenstackIronic(master){
     def salt = new com.mirantis.mk.Salt()
 
@@ -107,7 +168,9 @@ def installOpenstackControl(master) {
     //runSaltProcessStep(master, 'I@glance:server', 'state.sls', ['glance.server'], 1)
     salt.enforceState(master, 'I@glance:server and *01*', 'glance.server', true)
     salt.enforceState(master, 'I@glance:server', 'glance.server', true)
-    salt.enforceState(master, 'I@glance:server', 'glusterfs.client', true)
+    if (common.checkContains('OPENSTACK_SERVICES', 'glusterfs')){
+        salt.enforceState(master, 'I@glance:server', 'glusterfs.client', true)
+    }`
 
     // Update fernet tokens before doing request on keystone server
     salt.enforceState(master, 'I@keystone:server', 'keystone.server', true)
@@ -344,7 +407,7 @@ timestamps {
                 // install Infra and control, tests, ...
 
                 stage('Install OpenStack infra') {
-                    orchestrate.installOpenstackInfra(saltMaster)
+                    installOpenstackInfra(saltMaster, OPENSTACK_SERVICES)
                 }
 
                 stage('Install OpenStack control') {
