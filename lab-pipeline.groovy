@@ -59,7 +59,7 @@ test = new com.mirantis.mk.Test()
 
 _MAX_PERMITTED_STACKS = 2
 
-def installOpenstackInfra(master, openstack_services='glusterfs,keepalived') {
+def installOpenstackInfra(master, openstack_services='glusterfs,keepalived,galera,haproxy') {
     def salt = new com.mirantis.mk.Salt()
 
     if (common.checkContains('openstack_services', 'glusterfs')){
@@ -124,10 +124,12 @@ def installOpenstackInfra(master, openstack_services='glusterfs,keepalived') {
     // // Setup mysql client
     // salt.enforceState(master, 'I@mysql:client', 'mysql.client', true)
 
-    // Install haproxy
-    salt.enforceState(master, 'I@haproxy:proxy', 'haproxy', true)
-    salt.runSaltProcessStep(master, 'I@haproxy:proxy', 'service.status', ['haproxy'])
-    salt.runSaltProcessStep(master, 'I@haproxy:proxy', 'service.restart', ['rsyslog'])
+    if (common.checkContains('openstack_services', 'haproxy')){
+        // Install haproxy
+        salt.enforceState(master, 'I@haproxy:proxy', 'haproxy', true)
+        salt.runSaltProcessStep(master, 'I@haproxy:proxy', 'service.status', ['haproxy'])
+        salt.runSaltProcessStep(master, 'I@haproxy:proxy', 'service.restart', ['rsyslog'])
+    }
 
     // Install memcached
     salt.enforceState(master, 'I@memcached:server', 'memcached', true)
