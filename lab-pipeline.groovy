@@ -117,6 +117,8 @@ def installOpenstackControl(master) {
 
     // Install and check nova service
     //runSaltProcessStep(master, 'I@nova:controller', 'state.sls', ['nova'], 1)
+    salt.enforceState(master, 'I@nova:controller and *01*', 'nova.controller', false)
+    salt.enforceState(master, 'I@nova:controller and *01*', 'nova.controller', false)
     salt.enforceState(master, 'I@nova:controller and *01*', 'nova.controller', true)
     salt.enforceState(master, 'I@nova:controller', 'nova.controller', true)
     salt.runSaltProcessStep(master, 'I@keystone:server', 'cmd.run', ['. /root/keystonerc; nova service-list'], null, true)
