@@ -59,7 +59,7 @@ test = new com.mirantis.mk.Test()
 
 _MAX_PERMITTED_STACKS = 2
 
-def installOpenstackInfra(master, openstack_services='glusterfs') {
+def installOpenstackInfra(master, openstack_services='glusterfs,keepalived') {
     def salt = new com.mirantis.mk.Salt()
 
     if (common.checkContains('openstack_services', 'glusterfs')){
@@ -67,13 +67,15 @@ def installOpenstackInfra(master, openstack_services='glusterfs') {
         salt.enforceState(master, 'I@glusterfs:server', 'glusterfs.server.service', true)
     }
 
-    // Install keepaliveds
-    //runSaltProcessStep(master, 'I@keepalived:cluster', 'state.sls', ['keepalived'], 1)
-    salt.enforceState(master, 'I@keepalived:cluster and *01*', 'keepalived', true)
-    salt.enforceState(master, 'I@keepalived:cluster', 'keepalived', true)
+    if (common.checkContains('openstack_services', 'keepalived')){
+        // Install keepaliveds
+        //runSaltProcessStep(master, 'I@keepalived:cluster', 'state.sls', ['keepalived'], 1)
+        salt.enforceState(master, 'I@keepalived:cluster and *01*', 'keepalived', true)
+        salt.enforceState(master, 'I@keepalived:cluster', 'keepalived', true)
 
-    // Check the keepalived VIPs
-    salt.runSaltProcessStep(master, 'I@keepalived:cluster', 'cmd.run', ['ip a | grep 172.16.10.2'])
+        // Check the keepalived VIPs
+        salt.runSaltProcessStep(master, 'I@keepalived:cluster', 'cmd.run', ['ip a | grep 172.16.10.2'])
+    }
 
     if (common.checkContains('openstack_services', 'glusterfs')){
         withEnv(['ASK_ON_ERROR=false']){
