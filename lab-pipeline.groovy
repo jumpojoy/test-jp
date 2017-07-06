@@ -170,7 +170,7 @@ def installOpenstackControl(master) {
     salt.enforceState(master, 'I@glance:server', 'glance.server', true)
     if (common.checkContains('OPENSTACK_SERVICES', 'glusterfs')){
         salt.enforceState(master, 'I@glance:server', 'glusterfs.client', true)
-    }`
+    }
 
     // Update fernet tokens before doing request on keystone server
     salt.enforceState(master, 'I@keystone:server', 'keystone.server', true)
