@@ -179,7 +179,7 @@ def installOpenstackControl(master) {
     //salt.runSaltProcessStep(master, 'I@keystone:client', 'cmd.run', ['salt-call state.sls keystone.client'], null, true)
     salt.runSaltProcessStep(master, 'I@keystone:server', 'service.restart', ['apache2'])
     sleep(30)
-    salt.enforceState(master, 'I@keystone:client', 'keystone.client', true)
+    salt.enforceState(master, 'I@keystone:client and cfg01*', 'keystone.client', true)
     salt.enforceState(master, 'I@keystone:client', 'keystone.client', true)
     salt.runSaltProcessStep(master, 'I@keystone:server', 'cmd.run', ['. /root/keystonercv3; openstack service list'], null, true)
 
