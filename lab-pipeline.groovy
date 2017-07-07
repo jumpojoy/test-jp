@@ -135,8 +135,12 @@ def installOpenstackInfra(master, openstack_services='glusterfs,keepalived,galer
     salt.enforceState(master, 'I@memcached:server', 'memcached', true)
 }
 
-def installOpenstackIronic(master){
+def installOpenstackIronic(master, openstack_services){
     def salt = new com.mirantis.mk.Salt()
+
+    if (common.checkContains('openstack_services', 'baremetal_simulator')){
+        salt.enforceState(master, 'I@bmt*', 'baremetal_simulator', true)
+    }
 
     salt.enforceState(master, 'I@ironic:api and ctl01*', 'ironic.api', true)
     salt.enforceState(master, 'I@ironic:api', 'ironic.api', true)
@@ -450,7 +454,7 @@ timestamps {
                 }
                 if (common.checkContains('OPENSTACK_SERVICES', 'ironic')) {
                     stage('Install OpenStack Ironic') {
-                        installOpenstackIronic(saltMaster)
+                        installOpenstackIronic(saltMaster, OPENSTACK_SERVICES)
                     }
                 }
 
