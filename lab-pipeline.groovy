@@ -150,6 +150,9 @@ def installOpenstackIronic(master, openstack_services){
 
     salt.enforceState(master, 'I@tftpd_hpa:server', 'tftpd_hpa', true)
     salt.enforceState(master, 'I@ironic:client', 'ironic.client', true)
+
+    salt.runSaltProcessStep(master, 'I@ironic:conductor', 'cmd.run', ['reboot'], null, true)
+    sleep(30)
 }
 
 def installOpenstackNetwork(master, physical = "false", openstack_services='neutron') {
