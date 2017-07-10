@@ -224,6 +224,14 @@ def installOpenstackControl(master) {
     salt.enforceState(master, 'I@cinder:controller and *01*', 'cinder', true)
     salt.enforceState(master, 'I@cinder:controller', 'cinder', true)
     salt.runSaltProcessStep(master, 'I@keystone:server', 'cmd.run', ['. /root/keystonerc; cinder list'], null, true)
+
+    // Install neutron service
+    //runSaltProcessStep(master, 'I@neutron:server', 'state.sls', ['neutron'], 1)
+
+    salt.enforceState(master, 'I@neutron:server and *01*', 'neutron.server', true)
+    salt.enforceState(master, 'I@neutron:server', 'neutron.server', true)
+    salt.runSaltProcessStep(master, 'I@keystone:server', 'cmd.run', ['. /root/keystonerc; neutron agent-list'], null, true)
+
     // Install heat service
     //salt.runSaltProcessStep(master, 'I@heat:server', 'state.sls', ['heat'], 1)
     //salt.enforceState(master, 'I@heat:server and *01*', 'heat', true)
