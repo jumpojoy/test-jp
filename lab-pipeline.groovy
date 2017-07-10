@@ -161,7 +161,7 @@ def installOpenstackNetwork(master, physical = "false", openstack_services='neut
         salt.runSaltProcessStep(master, 'I@neutron:gateway', 'state.apply', [], null, true)
     }
     if (common.checkContains('openstack_services', 'neutron.client')){
-      salt.enforceState(master, 'I@neutron:client and ctl01*', 'neutron.client', true)
+      salt.enforceState(master, 'I@neutron:client and *01*', 'neutron.client', true)
       salt.enforceState(master, 'I@neutron:client', 'neutron.client', true)
     }
 }
