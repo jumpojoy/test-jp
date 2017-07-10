@@ -152,6 +152,17 @@ def installOpenstackIronic(master, openstack_services){
     salt.enforceState(master, 'I@ironic:client', 'ironic.client', true)
 }
 
+def installOpenstackNetwork(master, physical = "false", openstack_services='neutron') {
+    def salt = new com.mirantis.mk.Salt()
+    if (common.checkContains('openstack_services', 'neutron')){
+        salt.runSaltProcessStep(master, 'I@neutron:gateway', 'state.apply', [], null, true)
+    }
+    if (common.checkContains('openstack_services', 'neutron.client')){
+      salt.enforceState(master, 'I@neutron:client and ctl01*', 'neutron.client', true)
+      salt.enforceState(master, 'I@neutron:client', 'neutron.client', true)
+    }
+}
+
 def installOpenstackControl(master) {
     def salt = new com.mirantis.mk.Salt()
 
@@ -438,7 +449,7 @@ timestamps {
                     if (common.checkContains('STACK_INSTALL', 'contrail')) {
                         orchestrate.installContrailNetwork(saltMaster)
                     } else if (common.checkContains('STACK_INSTALL', 'ovs')) {
-                        orchestrate.installOpenstackNetwork(saltMaster)
+                        installOpenstackNetwork(saltMaster, OPENSTACK_SERVICES)
                     }
 
                     salt.runSaltProcessStep(saltMaster, 'I@keystone:server', 'cmd.run', ['. /root/keystonerc; neutron net-list'])
