@@ -139,7 +139,7 @@ def installOpenstackIronic(master, openstack_services){
     def salt = new com.mirantis.mk.Salt()
 
     salt.runSaltProcessStep(master, 'I@ironic:conductor', 'cmd.run', ['reboot'], null, true)
-    sleep(30)
+    sleep(60)
 
     if (common.checkContains('openstack_services', 'baremetal_simulator')){
         salt.enforceState(master, 'I@bmt*', 'baremetal_simulator', true)
