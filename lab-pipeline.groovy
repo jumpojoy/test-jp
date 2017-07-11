@@ -138,6 +138,9 @@ def installOpenstackInfra(master, openstack_services='glusterfs,keepalived,galer
 def installOpenstackIronic(master, openstack_services){
     def salt = new com.mirantis.mk.Salt()
 
+    salt.runSaltProcessStep(master, 'I@ironic:conductor', 'cmd.run', ['reboot'], null, true)
+    sleep(30)
+
     if (common.checkContains('openstack_services', 'baremetal_simulator')){
         salt.enforceState(master, 'I@bmt*', 'baremetal_simulator', true)
     }
@@ -149,10 +152,8 @@ def installOpenstackIronic(master, openstack_services){
     salt.runSaltProcessStep(master, 'I@nova:compute', 'service.restart', ['nova-compute'])
 
     salt.enforceState(master, 'I@tftpd_hpa:server', 'tftpd_hpa', true)
-    salt.enforceState(master, 'I@ironic:client', 'ironic.client', true)
 
-    salt.runSaltProcessStep(master, 'I@ironic:conductor', 'cmd.run', ['reboot'], null, true)
-    sleep(30)
+    salt.enforceState(master, 'I@ironic:client', 'ironic.client', true)
 }
 
 def installOpenstackNetwork(master, physical = "false", openstack_services='neutron') {
