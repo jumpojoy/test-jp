@@ -275,7 +275,7 @@ timestamps {
                 // install Infra and control, tests, ...
 
                 stage('Install OpenStack infra') {
-                    orchestrate.installOpenstackInfra(saltMaster, OPENSTACK_SERVICES)
+                    orchestrate.installOpenstackInfra(saltMaster)
                 }
 
                 stage('Install OpenStack control') {
