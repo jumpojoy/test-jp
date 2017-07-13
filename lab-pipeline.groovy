@@ -70,6 +70,25 @@ def installOpenstackNetwork(master, physical = "false", openstack_services='neut
     }
 }
 
+
+def applyPatches(master, extra_repo){
+    def salt = new com.mirantis.mk.Salt()
+
+    if (!extra_repo){
+        return
+    }
+    cmd = "python /srv/salt/reclass/scripts/node_updater.py --node-path /srv/salt/reclass/nodes/_generated repo_add --repo-name custom --source '${extra_repo}'"
+    salt.runSaltProcessStep(master, 'I@salt:master', 'cmd.run', [cmd])
+    cmd = "python /srv/salt/reclass/scripts/node_updater.py --node-path /srv/salt/reclass/nodes repo_add --repo-name custom --source '${extra_repo}'"
+    salt.runSaltProcessStep(master, 'I@salt:master', 'cmd.run', [cmd], null, true)
+
+    salt.runSaltProcessStep(master, '*', 'saltutil.refresh_pillar', [], null, true)
+    salt.runSaltProcessStep(master, '*', 'saltutil.sync_all', [], null, true)
+
+    salt.enforceState(master, '*', ['linux.system'], true)
+    salt.enforceState(master, 'I@linux:system', ['linux'], true)
+}
+
 timestamps {
     node {
         // try to get STACK_INSTALL or fallback to INSTALL if exists
@@ -178,7 +197,9 @@ timestamps {
 
             if (common.checkContains('STACK_INSTALL', 'core')) {
                 stage('Install core infrastructure') {
-                    orchestrate.installFoundationInfra(saltMaster, EXTRA_REPO)
+                    orchestrate.installFoundationInfra(saltMaster)
+
+                    applyPatches(saltMaster, EXTRA_REPO)
 
                     if (common.checkContains('STACK_INSTALL', 'kvm')) {
                         orchestrate.installInfraKvm(saltMaster)
@@ -275,7 +296,7 @@ timestamps {
                 // install Infra and control, tests, ...
 
                 stage('Install OpenStack infra') {
-                    orchestrate.installOpenstackInfra(saltMaster, OPENSTACK_SERVICES)
+                    orchestrate.installOpenstackInfra(saltMaster)
                 }
 
                 stage('Install OpenStack control') {
@@ -287,7 +308,7 @@ timestamps {
                     if (common.checkContains('STACK_INSTALL', 'contrail')) {
                         orchestrate.installContrailNetwork(saltMaster)
                     } else if (common.checkContains('STACK_INSTALL', 'ovs')) {
-                        orchestrate.installOpenstackNetwork(saltMaster, OPENSTACK_SERVICES)
+                        orchestrate.installOpenstackNetwork(saltMaster)
                     }
 
                     salt.runSaltProcessStep(saltMaster, 'I@keystone:server', 'cmd.run', ['. /root/keystonerc; neutron net-list'])
@@ -301,10 +322,9 @@ timestamps {
                         orchestrate.installContrailCompute(saltMaster)
                     }
                 }
-                if (common.checkContains('OPENSTACK_SERVICES', 'ironic')) {
-                    stage('Install OpenStack Ironic') {
-                        orchestrate.installOpenstackIronic(saltMaster, OPENSTACK_SERVICES)
-                    }
+
+                stage('Install OpenStack ironic conductor') {
+                    orchestrate.installIronicConductor(saltMaster)
                 }
 
             }
